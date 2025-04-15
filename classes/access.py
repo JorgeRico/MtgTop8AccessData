@@ -12,7 +12,6 @@ class MSAccess:
 
     # get tournament info
     def getTournaments(self):
-        # INSERT INTO `tournament` (`id`, `idTournament`, `name`, `date`, `idLeague`, `datetime`) VALUES        
         # parse table
         table = self.db.parse_table("Tournaments")
         df    = pd.DataFrame(table, columns=['IdTournament', 'NameTournament', 'DateTournament', 'Observacions'])
