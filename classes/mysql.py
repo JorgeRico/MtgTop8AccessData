@@ -1,5 +1,5 @@
 import pandas as pd
-
+from classes.scrapping import Scrapping
 class Mysql:
     def __init__(self):
         # excel files
@@ -19,7 +19,7 @@ class Mysql:
         itemList = self.getItemListFromExcel(df)
 
         for item in itemList:
-            cardType = ''
+            cardType = self.getCardType(item[0])
 
             # main cards
             if int(item[2]) > 0:
@@ -149,3 +149,30 @@ class Mysql:
     def writeFile(self, value, filePath):
         with open(filePath, 'a', encoding='utf-8') as file:
             file.write(value)
+
+    
+    # get cardType
+    def getCardType(self, cardName):
+        soup     = Scrapping()
+        cardName = soup.convertCardName(cardName)
+
+        try:
+            soup = soup.getJsonSoup(soup.getScryfallUrlCardData(cardName))
+        except Exception:
+            print(soup.getScryfallUrlCardData(cardName))
+            return ''
+        
+        if 'planeswalker' in soup['type_line'].lower():
+            return 'planeswalker'
+        if 'creature' in soup['type_line'].lower():
+            return 'creature'
+        if 'land' in soup['type_line'].lower():
+            return 'land'
+        if 'artifact' in soup['type_line'].lower():
+            return 'artifact'
+        if 'enchantment' in soup['type_line'].lower():
+            return 'enchantment'
+        if 'sorcery' in soup['type_line'].lower():
+            return 'sorcery'
+        if 'instant' in soup['type_line'].lower():
+            return 'instant'
