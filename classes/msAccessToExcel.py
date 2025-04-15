@@ -60,7 +60,7 @@ class MSAccessToExcel:
         value = value.replace('Darrer torneig de la LCL 2023', '')
         value = value.replace('jugadors', '')
         value = value.replace('Torneig invitacional final de la LCL 2019', '')
-        value = value.replace('Torneig invitaciona', '')
+        value = value.replace('Torneig invitacional', '')
         value = value.replace(' torneig de la LCL 2025', '')
         value = value.replace("La LIL es converteix en LCL a partir d'aquest torneig", '')
         value = value.replace('1r', '')
