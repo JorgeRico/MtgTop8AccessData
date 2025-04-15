@@ -30,6 +30,7 @@ class Menu:
     def jsonToMysqlDatabase(self):
         data = JsonToMysql()
         print(' -- Read File Start!!!')
-        data.insertLeagueAndTournament()
-        data.insertTournamentPlayers()
+        # data.insertLeagueAndTournament()
+        # data.insertTournamentPlayers()
+        data.insertTournamentDecks()
         print(' -- Read File Finished!!!')

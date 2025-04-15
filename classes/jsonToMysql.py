@@ -35,10 +35,29 @@ class JsonToMysql:
                 db.executeInsertQuery(connection, query)
                 print("    -- Top Player added: %s - %s" %(line['position'],line['name']))
 
+    def insertTournamentDecks(self):
+        jsonContent = self.getJsonFileContent(self.filePath.getJsonDecksPath())
+        db          = Db()
+        connection  = db.connection()
+
+        for line in jsonContent:
+            result = self.getPlayerIdDeckOnDB(line['player'], line['idTournament'])
+            if len(result) != 0:
+                query = 'INSERT INTO `deck` (`id`, `name`, `idPlayer`) VALUES ( "%s", "%s", "%s");' %(result[0][0], line['name'], result[0][1])
+                db.executeInsertQuery(connection, query)
+                print("    -- Top Player Deck added: %s" %line['name'])
+
     def existsTournamentOnDB(self, idTournament):
         db         = Db()
         connection = db.connection()
         query      = 'SELECT id as id FROM tournament WHERE idTournament = %s;' %(idTournament)
+        
+        return db.selectQuery(connection, query)
+    
+    def getPlayerIdDeckOnDB(self, name, idTournament):
+        db         = Db()
+        connection = db.connection()
+        query      = 'SELECT idDeck as idDeck, id as idPlayer FROM player WHERE name = "%s" AND idTournament = %s;' %(name, idTournament)
         
         return db.selectQuery(connection, query)
 

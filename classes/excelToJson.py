@@ -49,8 +49,10 @@ class ExcelToJson:
 
         for item in itemList:
             value = {
-                "id"   : item[0],
-                "name" : item[1], 
+                "id"           : item[0],
+                "name"         : item[1],
+                "player"       : item[2],
+                "idTournament" : item[3]
             }
 
             values.append(value)
