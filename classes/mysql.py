@@ -8,7 +8,23 @@ class Mysql:
         self.playersExcelFilePath    = 'data/access/players.xlsx'
 
         self.tournamentTextFilePath  = 'data/text/tournaments.txt'
+        self.decksTextFilePath       = 'data/text/decks.txt'
         self.playersTextFilePath     = 'data/text/players.txt'
+
+
+    # get top8 player deck
+    def getTop8PlayerDeck(self):
+        df = pd.read_excel(self.decksExcelFilePath)
+    
+        itemList = []
+
+        for index, row in df.iterrows():
+            itemList.append(row.to_list())
+
+        with open(self.decksTextFilePath, 'a', encoding='utf-8') as file:
+            for item in itemList:
+                value    = "INSERT INTO `deck` (`id`, `name`) VALUES (%s, %s);\r" %(str(item[0]), str(item[1]))
+                file.write(value)
 
 
     # get Top8 players
