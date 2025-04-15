@@ -1,27 +1,41 @@
 from access_parser import AccessParser
 import pandas as pd
+from classes.filePaths import FilePaths
 
 class MSAccess:
     def __init__(self, file):
-        self.db                 = AccessParser(file)
-        self.tournamentFilePath = 'data/access/tournaments.xlsx'
-        self.decksFilePath      = 'data/access/decks.xlsx'
-        self.cardsFilePath      = 'data/access/cards.xlsx'
-        self.playersFilePath    = 'data/access/players.xlsx'
-
+        self.db       = AccessParser(file)
+        self.filePath = FilePaths()
 
     # get tournament info
     def getTournaments(self):
-        # parse table
-        table = self.db.parse_table("Tournaments")
-        df    = pd.DataFrame(table, columns=['IdTournament', 'NameTournament', 'DateTournament', 'Observacions'])
+        self.parseTableToExcel("Tournaments", ['IdTournament', 'NameTournament', 'DateTournament', 'Observacions'], self.filePath.getExcelTournamentPath(), True)
+
+    # get decks info
+    def getDecks(self):
+        self.parseTableToExcel("DecksLegacy", ['DeckPlayer', 'IdTop', 'IdTournament', 'IdDeck'], self.filePath.getExcelPlayersPath())
+        self.parseTableToExcel("DecksLegacy", ['IdDeck', 'DeckName', 'DeckPlayer', 'IdTournament'], self.filePath.getExcelDecksPath())
+    
+    # get deck cards
+    def getCards(self):
+        self.parseTableToExcel("CardsPerDeck", ['CardName', 'IdDeck', 'QuantityInMaindeck', 'QuantityInSideboard'], self.filePath.getExcelCardsPath())
+        
+    # parse table and convert
+    def parseTableToExcel(self, tableName, cols, filePath, isTournamentException = False):
+        table = self.db.parse_table(tableName)
+        df    = pd.DataFrame(table, columns=cols)
 
         # modify values
-        df['DateTournament'] = df['DateTournament'].apply(self.modifyTournamentDate)
-        df['Observacions']   = df['Observacions'].apply(self.modifyTournamentPlayervalues)
+        if isTournamentException == True:
+            df['DateTournament'] = df['DateTournament'].apply(self.modifyTournamentDate)
+            df['Observacions']   = df['Observacions'].apply(self.modifyTournamentPlayervalues)
 
-        self.convertToExcel(df, self.tournamentFilePath)
+        self.convertToExcel(df, filePath)
 
+    # convert to excel
+    def convertToExcel(self, df, fileName):
+        df.to_excel(fileName, sheet_name='Results', index=False)
+        print('  -- File saved %s' %fileName)
 
     # modify tournament date
     def modifyTournamentDate(self, value):
@@ -30,7 +44,6 @@ class MSAccess:
         dateValue     = splittedValue[2] + '/' + splittedValue[1] + '/' + splittedValue[0][2] + splittedValue[0][3] 
 
         return dateValue
-
 
     # parse only number of players
     def modifyTournamentPlayervalues(self, value):
@@ -74,42 +87,10 @@ class MSAccess:
             return valueSplitted[1].strip()
 
         return value.strip()
-    
 
-    # get decks info
-    def getDecks(self):
-        # INSERT INTO `player` (`id`, `name`, `position`, `idTournament`, `idDeck`, `datetime`) VALUES
-        # parse table
-        table = self.db.parse_table("DecksLegacy")
-        df    = pd.DataFrame(table, columns=['DeckPlayer', 'IdTop', 'IdTournament', 'IdDeck'])
-        self.convertToExcel(df, self.playersFilePath)
-        
-        # INSERT INTO `deck` (`id`, `name`, `idPlayer`, `datetime`) VALUES
-        # parse table
-        table = self.db.parse_table("DecksLegacy")
-        df    = pd.DataFrame(table, columns=['IdDeck', 'DeckName', 'DeckPlayer', 'IdTournament'])
-        self.convertToExcel(df, self.decksFilePath)
-
-    
-    # get deck cards
-    def getCards(self):
-        # INSERT INTO `cards` (`id`, `name`, `num`, `idDeck`, `board`, `datetime`, `cardType`) VALUES
-        # parse table
-        table = self.db.parse_table("CardsPerDeck")
-        df    = pd.DataFrame(table, columns=['CardName', 'IdDeck', 'QuantityInMaindeck', 'QuantityInSideboard'])
-        self.convertToExcel(df, self.cardsFilePath)
-        
-
-    # convert to excel
-    def convertToExcel(self, df, fileName):
-        df.to_excel(fileName, sheet_name='Results', index=False)
-        print('  -- File saved %s' %fileName)
-
-    
     # Print DB tables
     def printTableList(self):
         print(self.db.catalog)
-
 
     # Pretty print all tables
     def printDatabase(self):
