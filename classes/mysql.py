@@ -2,49 +2,52 @@ import pandas as pd
 
 class Mysql:
     def __init__(self):
+        # excel files
         self.tournamentExcelFilePath = 'data/access/tournaments.xlsx'
         self.decksExcelFilePath      = 'data/access/decks.xlsx'
         self.cardsExcelFilePath      = 'data/access/cards.xlsx'
         self.playersExcelFilePath    = 'data/access/players.xlsx'
-
+        # text files
         self.tournamentTextFilePath  = 'data/text/tournaments.txt'
         self.decksTextFilePath       = 'data/text/decks.txt'
+        self.cardsTextFilePath       = 'data/access/cards.txt'
         self.playersTextFilePath     = 'data/text/players.txt'
 
 
     # get top8 player deck
     def getTop8PlayerDeck(self):
-        df = pd.read_excel(self.decksExcelFilePath)
-    
-        itemList = []
+        df       = pd.read_excel(self.decksExcelFilePath)
+        itemList = self.getItemListFromExcel(df)
 
-        for index, row in df.iterrows():
-            itemList.append(row.to_list())
+        for item in itemList:
+            value = "INSERT INTO `deck` (`id`, `name`) VALUES (%s, %s);\r" %(str(item[0]), str(item[1]))
+            self.writeFile(value, self.decksTextFilePath)
 
-        with open(self.decksTextFilePath, 'a', encoding='utf-8') as file:
-            for item in itemList:
-                value    = "INSERT INTO `deck` (`id`, `name`) VALUES (%s, %s);\r" %(str(item[0]), str(item[1]))
-                file.write(value)
+
+    # get top8 player deck
+    def getTop8PlayerDeck(self):
+        df       = pd.read_excel(self.decksExcelFilePath)
+        itemList = self.getItemListFromExcel(df)
+
+        for item in itemList:
+            value = "INSERT INTO `deck` (`id`, `name`) VALUES (%s, %s);\r" %(str(item[0]), str(item[1]))
+            self.writeFile(value, self.decksTextFilePath)
 
 
     # get Top8 players
     def getTop8Players(self):
-        df = pd.read_excel(self.playersExcelFilePath)
-    
-        itemList = []
-
-        for index, row in df.iterrows():
-            itemList.append(row.to_list())
-
+        df       = pd.read_excel(self.playersExcelFilePath)
+        itemList = self.getItemListFromExcel(df)
         position = None
-        with open(self.playersTextFilePath, 'a', encoding='utf-8') as file:
-            for item in itemList:
-                # allways first row is 1st player
-                previous = self.getPreviousPosition(item[1], position)
-                position = self.getPosition(item[1], previous)
 
-                value    = "INSERT INTO `player` (`name`, `position`, `idTournament`, `idDeck`) VALUES (%s, %s, '%s', '%s');\r" %(item[0], str(position), item[2], str(item[3]))
-                file.write(value)
+        for item in itemList:
+            # allways first row is 1st player
+            previous = self.getPreviousPosition(item[1], position)
+            position = self.getPosition(item[1], previous)
+
+            value    = "INSERT INTO `player` (`name`, `position`, `idTournament`, `idDeck`) VALUES (%s, %s, '%s', '%s');\r" %(item[0], str(position), item[2], str(item[3]))
+            self.writeFile(value, self.playersTextFilePath)
+
 
     # get previous position number
     def getPreviousPosition(self, item, position):
@@ -52,6 +55,7 @@ class Mysql:
             return item
         else:
             return position
+
 
     # conversion position number
     def getPosition(self, position, previousValue):
@@ -111,3 +115,19 @@ class Mysql:
             idLeague = 25
 
         return idLeague
+    
+
+    # get item list values
+    def getItemListFromExcel(self, df):
+        itemList = []
+
+        for index, row in df.iterrows():
+            itemList.append(row.to_list())
+
+        return itemList
+    
+
+    # write to file
+    def writeFile(self, value, filePath):
+        with open(filePath, 'a', encoding='utf-8') as file:
+            file.write(value)
