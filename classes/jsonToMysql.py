@@ -20,9 +20,27 @@ class JsonToMysql:
                 db.executeInsertQuery(connection, query)
                 print("  -- League added or updated: %s" %leagueName)
 
-                query = 'INSERT INTO tournament (idTournament, name, date, idLeague, players) VALUES ( "%s", "%s", "%s", "%s", "%s" );' %(line['idTournament'], line['name'], line['date'], idLeague, line['players'])
+                query = 'INSERT INTO tournament (id, idTournament, name, date, idLeague, players) VALUES ( "%s", "%s", "%s", "%s", "%s", "%s" );' %(line['idTournament'], line['idTournament'], line['name'], line['date'], idLeague, line['players'])
                 db.executeInsertQuery(connection, query)
                 print("    -- Tournament added: %s" %line['name'])
+
+    def insertTournamentPlayers(self):
+        jsonContent = self.getJsonFileContent(self.filePath.getJsonPlayersPath())
+        db          = Db()
+        connection  = db.connection()
+
+        for line in jsonContent:
+            if len(self.existsTournamentOnDB(line['idTournament'])) != 0:
+                query = 'INSERT INTO `player` ( `name`, `position`, `idTournament`, `idDeck` ) VALUES ( "%s", "%s", "%s", "%s" );' %(line['name'], line['position'], line['idTournament'], line['idDeck'])
+                db.executeInsertQuery(connection, query)
+                print("    -- Top Player added: %s - %s" %(line['position'],line['name']))
+
+    def existsTournamentOnDB(self, idTournament):
+        db         = Db()
+        connection = db.connection()
+        query      = 'SELECT id as id FROM tournament WHERE idTournament = %s;' %(idTournament)
+        
+        return db.selectQuery(connection, query)
 
     def getJsonFileContent(self, filePath):        
         with open(filePath, 'r') as openfile:

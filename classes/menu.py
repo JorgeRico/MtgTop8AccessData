@@ -31,4 +31,5 @@ class Menu:
         data = JsonToMysql()
         print(' -- Read File Start!!!')
         data.insertLeagueAndTournament()
+        data.insertTournamentPlayers()
         print(' -- Read File Finished!!!')
