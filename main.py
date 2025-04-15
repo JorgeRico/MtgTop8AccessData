@@ -16,9 +16,10 @@ def excelToInsertText():
     data = Mysql()
 
     print(' -- Generate Insert Files Start!!!')
-    data.getTournamentInserts()
-    data.getTop8Players()
-    data.getTop8PlayerDeck()
+    # data.getTournamentInserts()
+    # data.getTop8Players()
+    # data.getTop8PlayerDeck()
+    data.getDeckCards()
     print(' -- Generate Insert Files Finished!!!')
      
 

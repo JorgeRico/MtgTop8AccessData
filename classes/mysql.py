@@ -10,9 +10,27 @@ class Mysql:
         # text files
         self.tournamentTextFilePath  = 'data/text/tournaments.txt'
         self.decksTextFilePath       = 'data/text/decks.txt'
-        self.cardsTextFilePath       = 'data/access/cards.txt'
+        self.cardsTextFilePath       = 'data/text/cards.txt'
         self.playersTextFilePath     = 'data/text/players.txt'
 
+    # get deck cards
+    def getDeckCards(self):
+        df       = pd.read_excel(self.cardsExcelFilePath)
+        itemList = self.getItemListFromExcel(df)
+
+        for item in itemList:
+            cardType = ''
+
+            # main cards
+            if int(item[2]) > 0:
+                value = "INSERT INTO cards (name, num, idDeck, board, cardType) VALUES ( %s, %s, %s, %s, %s );\r" %(str(item[0]), item[2], item[1], 'md', cardType)
+                self.writeFile(value, self.cardsTextFilePath)
+
+            # sideboard cards
+            if int(item[3]) > 0:
+                value = "INSERT INTO cards (name, num, idDeck, board, cardType) VALUES ( %s, %s, %s, %s, %s );\r" %(str(item[0]), item[3], item[1], 'sb', cardType)
+                self.writeFile(value, self.cardsTextFilePath)
+                
 
     # get top8 player deck
     def getTop8PlayerDeck(self):
