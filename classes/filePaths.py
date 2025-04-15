@@ -1,35 +1,37 @@
 class FilePaths:
     def __init__(self):
-        self.accessPath = 'data/access/'
-        self.textPath   = 'data/text/'
+        self.excelPath  = 'data/excel/'
+        self.jsonPath   = 'data/json/'
         self.originPath = 'data/origin/'
 
     # origin
     def getOriginalAccessFile(self):
         return self.originPath + 'data.mdb'
 
+
     # excel files
     def getExcelTournamentPath(self):
-        return self.accessPath + 'tournaments.xlsx'
+        return self.excelPath + 'tournaments.xlsx'
 
     def getExcelDecksPath(self):
-        return self.accessPath + 'decks.xlsx'
+        return self.excelPath + 'decks.xlsx'
 
     def getExcelCardsPath(self):
-        return self.accessPath + 'cards.xlsx'
+        return self.excelPath + 'cards.xlsx'
 
     def getExcelPlayersPath(self):
-        return self.accessPath + 'players.xlsx'
+        return self.excelPath + 'players.xlsx'
+    
+    
+    # json files
+    def getJsonTournamentPath(self):
+        return self.jsonPath + 'tournaments.json'
+    
+    def getJsonDecksPath(self):
+        return self.jsonPath + 'decks.json'
 
-    # text files
-    def getTextTournamentPath(self):
-        return self.textPath + 'tournaments.txt'
+    def getJsonCardsPath(self):
+        return self.jsonPath + 'cards.json'
 
-    def getTextDecksPath(self):
-        return self.textPath + 'decks.txt'
-
-    def getTextCardsPath(self):
-        return self.textPath + 'cards.txt'
-
-    def getTextPlayersPath(self):
-        return self.textPath + 'players.txt'
+    def getJsonPlayersPath(self):
+        return self.jsonPath + 'players.json'

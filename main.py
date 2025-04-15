@@ -4,5 +4,6 @@ from classes.menu import Menu
 if __name__ == "__main__":
     menu = Menu()
     menu.accessToExcel()
-    menu.excelToInsertText()
+    menu.excelToJson()
+    # menu.jsonToMysqlDatabase()
 

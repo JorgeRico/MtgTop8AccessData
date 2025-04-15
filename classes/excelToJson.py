@@ -1,74 +1,103 @@
 import pandas as pd
 from classes.scrapping import Scrapping
 from classes.filePaths import FilePaths
-class Mysql:
+import json
+
+class ExcelToJson:
     def __init__(self):
         self.filePath = FilePaths()
 
     # get deck cards
     def getDeckCards(self):
+        print('    -- Cards takes a lot of time . . . .')
         df       = pd.read_excel(self.filePath.getExcelCardsPath())
         itemList = self.getItemListFromExcel(df)
+        values   = []
 
         for item in itemList:
             cardType = self.getCardType(item[0])
 
             # main cards
             if int(item[2]) > 0:
-                value = "INSERT INTO cards (name, num, idDeck, board, cardType) VALUES ( %s, %s, %s, %s, %s );\r" %(str(item[0]), item[2], item[1], 'md', cardType)
-                self.writeFile(value, self.filePath.getTextCardsPath())
+                value = {
+                    "name"     : item[0],
+                    "num"      : item[2],
+                    "idDeck"   : item[1],
+                    "board"    : 'md',
+                    "cardType" : cardType
+                }
+                values.append(value)
 
             # sideboard cards
             if int(item[3]) > 0:
-                value = "INSERT INTO cards (name, num, idDeck, board, cardType) VALUES ( %s, %s, %s, %s, %s );\r" %(str(item[0]), item[3], item[1], 'sb', cardType)
-                self.writeFile(value, self.filePath.getTextCardsPath())  
+                value = {
+                    "name"     : item[0],
+                    "num"      : item[3],
+                    "idDeck"   : item[1],
+                    "board"    : 'sb',
+                    "cardType" : cardType
+                }
+                values.append(value)
+
+        self.writeJsonFile(values, self.filePath.getJsonCardsPath())
 
     # get top8 player deck
     def getTop8PlayerDeck(self):
         df       = pd.read_excel(self.filePath.getExcelDecksPath())
         itemList = self.getItemListFromExcel(df)
+        values   = []
 
         for item in itemList:
-            value = "INSERT INTO `deck` (`id`, `name`) VALUES (%s, %s);\r" %(str(item[0]), str(item[1]))
-            self.writeFile(value, self.filePath.getTextDecksPath())
+            value = {
+                "id"   : item[0],
+                "name" : item[1], 
+            }
 
-    # get top8 player deck
-    def getTop8PlayerDeck(self):
-        df       = pd.read_excel(self.filePath.getExcelDecksPath())
-        itemList = self.getItemListFromExcel(df)
-
-        for item in itemList:
-            value = "INSERT INTO `deck` (`id`, `name`) VALUES (%s, %s);\r" %(str(item[0]), str(item[1]))
-            self.writeFile(value, self.filePath.getTextDecksPath())
+            values.append(value)
+        self.writeJsonFile(values, self.filePath.getJsonDecksPath())
 
     # get Top8 players
     def getTop8Players(self):
         df       = pd.read_excel(self.filePath.getExcelPlayersPath())
         itemList = self.getItemListFromExcel(df)
-        position = None
+        values   = []
+        # allways first row is 1st player
+        position = 1
 
         for item in itemList:
-            # allways first row is 1st player
             previous = self.getPreviousPosition(item[1], position)
             position = self.getPosition(item[1], previous)
 
-            value    = "INSERT INTO `player` (`name`, `position`, `idTournament`, `idDeck`) VALUES (%s, %s, '%s', '%s');\r" %(item[0], str(position), item[2], str(item[3]))
-            self.writeFile(value, self.filePath.getTextPlayersPath())
+            value = {
+                "name"         : item[0],
+                "position"     : position, 
+                "idTournament" : item[2],
+                "idDeck"       : item[3]
+            }
+
+            values.append(value)
+        self.writeJsonFile(values, self.filePath.getJsonPlayersPath())
 
     # get tournament insert data
     def getTournamentInserts(self):
-        df = pd.read_excel(self.filePath.getExcelTournamentPath())
-    
-        itemList = []
+        df       = pd.read_excel(self.filePath.getExcelTournamentPath())
+        itemList = self.getItemListFromExcel(df)
+        values   = []
 
-        for index, row in df.iterrows():
-            itemList.append(row.to_list())
+        for item in itemList:
+            idLeague = self.getIdLeague(item[1])
 
-        with open(self.filePath.getTextTournamentPath(), 'a', encoding='utf-8') as file:
-            for item in itemList:
-                idLeague = self.getIdLeague(item[1])
-                value    = "INSERT INTO `tournament` (`id`, `idTournament`, `name`, `date`, `idLeague`, players) VALUES (%s, %s, '%s', '%s', %s, %s);\r" %(str(item[0]), str(item[0]), item[1], item[2], str(idLeague), str(item[3]))
-                file.write(value)
+            value = {
+                "id"           : str(item[0]),
+                "idTournament" : str(item[0]), 
+                "name"         : item[1], 
+                "date"         : item[2], 
+                "idLeague"     : str(idLeague),
+                "players"      : str(item[3])
+            }
+
+            values.append(value)
+        self.writeJsonFile(values, self.filePath.getJsonTournamentPath())
 
     # get previous position number
     def getPreviousPosition(self, item, position):
@@ -129,9 +158,12 @@ class Mysql:
         return itemList
 
     # write to file
-    def writeFile(self, value, filePath):
-        with open(filePath, 'a', encoding='utf-8') as file:
-            file.write(value)
+    def writeJsonFile(self, values, filePath):
+        with open(filePath, 'w', encoding='utf-8') as outfile:
+            json.dump({"data": values}, outfile)
+            outfile.write('\n')
+        print('  -- File saved %s' %filePath)
+
     
     # get cardType
     def getCardType(self, cardName):
