@@ -2,7 +2,13 @@ class FilePaths:
     def __init__(self):
         self.accessPath = 'data/access/'
         self.textPath   = 'data/text/'
+        self.originPath = 'data/origin/'
 
+    # origin
+    def getOriginalAccessFile(self):
+        return self.originPath + 'data.mdb'
+
+    # excel files
     def getExcelTournamentPath(self):
         return self.accessPath + 'tournaments.xlsx'
 
@@ -15,6 +21,7 @@ class FilePaths:
     def getExcelPlayersPath(self):
         return self.accessPath + 'players.xlsx'
 
+    # text files
     def getTextTournamentPath(self):
         return self.textPath + 'tournaments.txt'
 
