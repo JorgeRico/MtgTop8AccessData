@@ -1,7 +1,6 @@
 from access_parser import AccessParser
 import pandas as pd
 from classes.filePaths import FilePaths
-
 class MSAccessToExcel:
     def __init__(self, file):
         self.db       = AccessParser(file)

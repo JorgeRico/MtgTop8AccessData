@@ -2,7 +2,6 @@ import pandas as pd
 from classes.scrapping import Scrapping
 from classes.filePaths import FilePaths
 import json
-
 class ExcelToJson:
     def __init__(self):
         self.filePath = FilePaths()
@@ -165,9 +164,8 @@ class ExcelToJson:
             json.dump({"data": values}, outfile)
             outfile.write('\n')
         print('  -- File saved %s' %filePath)
-
     
-    # get cardType
+    # get cardType - get info from scryfall website
     def getCardType(self, cardName):
         soup     = Scrapping()
         cardName = soup.convertCardName(cardName)

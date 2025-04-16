@@ -4,10 +4,9 @@ class FilePaths:
         self.jsonPath   = 'data/json/'
         self.originPath = 'data/origin/'
 
-    # origin
+    # origin - data from year 2019 to 2025
     def getOriginalAccessFile(self):
         return self.originPath + 'data.mdb'
-
 
     # excel files
     def getExcelTournamentPath(self):
@@ -21,7 +20,6 @@ class FilePaths:
 
     def getExcelPlayersPath(self):
         return self.excelPath + 'players.xlsx'
-    
     
     # json files
     def getJsonTournamentPath(self):

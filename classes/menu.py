@@ -7,8 +7,8 @@ class Menu:
     def __init__(self):
         self.filePath = FilePaths()
 
+    # 1st step - Get mdb file data and transform to excel
     def accessToExcel(self):
-        # data from year 2019 to 2025
         data = MSAccessToExcel(self.filePath.getOriginalAccessFile())
 
         print(' -- Access DB export Starting!!!')
@@ -17,6 +17,7 @@ class Menu:
         data.getCards()
         print(' -- Access DB export Finished!!!\n')
 
+    # 2nd step - Transform info from excel to json
     def excelToJson(self):
         data = ExcelToJson()
 
@@ -27,6 +28,7 @@ class Menu:
         data.getDeckCards()
         print(' -- Generate Insert Files Finished!!!\n')
 
+    # 3rd step - Add json info to database
     def jsonToMysqlDatabase(self):
         data = JsonToMysql()
         print(' -- Insert values on DB Start!!!')

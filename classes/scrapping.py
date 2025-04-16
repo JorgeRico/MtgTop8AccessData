@@ -3,18 +3,18 @@ import urllib.request
 from bs4 import BeautifulSoup
 import json
 import unidecode
-
 class Scrapping:
     def __init__(self):
         self.scryfall = 'https://api.scryfall.com/cards'
 
-    # get soup
+    # get soup data
     def getSoup(self, url):
         page = urllib.request.urlopen(url)
         soup = BeautifulSoup(page, 'html.parser')
 
         return soup
     
+    # get json soup data
     def getJsonSoup(self, url):
         page = urllib.request.urlopen(url)
         soup = BeautifulSoup(page, 'html.parser')
@@ -22,9 +22,11 @@ class Scrapping:
 
         return data
     
+    # get card url
     def getScryfallUrlCardData(self, name):
         return self.scryfall + '/named?exact=' + name
     
+    # card exceptions detected
     def convertCardName(self, cardName):
         cardName = unidecode.unidecode(cardName)
         cardName = cardName.replace('L 3/4rien', 'Lorien')
