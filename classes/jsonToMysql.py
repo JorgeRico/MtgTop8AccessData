@@ -16,10 +16,10 @@ class JsonToMysql:
                 # extra info
                 leagueName = self.exceptionLeagueNames(line['idLeague'], line['name'])
                 idLeague   = self.exceptionLeagueId(line['idLeague'], leagueName)
-                year       = self.getYear(line['name'])
+                year       = self.getYear(leagueName)
 
                 # league add or update data
-                self.insertLeagueQuery(self, idLeague, year, leagueName)
+                self.insertLeagueQuery(idLeague, year, leagueName)
                 print("  -- League added or updated: %s" %leagueName)
 
                 # tournament add data
@@ -63,8 +63,8 @@ class JsonToMysql:
     
     # league insert or update query
     def insertLeagueQuery(self, idLeague, year, leagueName):
-        query = 'INSERT INTO league (id, name, year, active) VALUES ( "%s", "%s", "%s", 1 ) ' %(idLeague, year, leagueName)
-        query += 'ON DUPLICATE KEY UPDATE id="%s", name="%s", year="%s", active=1;' %(idLeague, year, leagueName)
+        query = 'INSERT INTO league (id, name, year, active) VALUES ( "%s", "%s", "%s", 1 ) ' %(idLeague, leagueName, year)
+        query += 'ON DUPLICATE KEY UPDATE id="%s", name="%s", year="%s", active=1;' %(idLeague, leagueName, year)
         self.db.executeInsertQuery(self.db.connection(), query)
     
     # tournament top8 - top16 players insert query
