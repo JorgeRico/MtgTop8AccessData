@@ -8,7 +8,7 @@ class Menu:
         self.filePath = FilePaths()
 
     def accessToExcel(self):
-        # data from 2019 to 2025
+        # data from year 2019 to 2025
         data = MSAccessToExcel(self.filePath.getOriginalAccessFile())
 
         print(' -- Access DB export Starting!!!')
@@ -29,8 +29,9 @@ class Menu:
 
     def jsonToMysqlDatabase(self):
         data = JsonToMysql()
-        print(' -- Read File Start!!!')
-        # data.insertLeagueAndTournament()
-        # data.insertTournamentPlayers()
+        print(' -- Insert values on DB Start!!!')
+        data.insertLeagueAndTournament()
+        data.insertTournamentPlayers()
         data.insertTournamentDecks()
-        print(' -- Read File Finished!!!')
+        data.insertCardsDeck()
+        print(' -- Insert values on DB Finished!!!')
