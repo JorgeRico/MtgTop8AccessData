@@ -14,7 +14,7 @@ class Menu:
         print(' -- Access DB export Starting!!!')
         data.getTournaments()
         data.getDecks()
-        data.getCards()
+        # data.getCards()
         print(' -- Access DB export Finished!!!\n')
 
     # 2nd step - Transform info from excel to json
@@ -25,7 +25,7 @@ class Menu:
         data.getTournamentInserts()
         data.getTop8Players()
         data.getTop8PlayerDeck()
-        data.getDeckCards()
+        # data.getDeckCards()
         print(' -- Generate Insert Files Finished!!!\n')
 
     # 3rd step - Add json info to database

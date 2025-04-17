@@ -23,7 +23,7 @@ class JsonToMysql:
                 print("  -- League added or updated: %s" %leagueName)
 
                 # tournament add data
-                self.insertTournamentQuery(self, line, idLeague)
+                self.insertTournamentQuery(line, idLeague)
                 print("    -- Tournament added: %s" %line['name'])
 
     # insert tournament players
@@ -34,7 +34,7 @@ class JsonToMysql:
             # excludes 2024 and 2025 tournaments
             if len(self.existsTournamentOnDB(line['idTournament'])) != 0:
                 self.insertTournamentPlayerQuery(line)
-                print("    -- Top Player added: %s - %s" %(line['position'],line['name']))
+                print("    -- Top Player added: %s - %s" %(line['position'], line['name']))
 
     # insert tournament decks
     def insertTournamentDecks(self):
@@ -52,9 +52,19 @@ class JsonToMysql:
         print("    -- Cards adding . . . .")
         jsonContent = self.getJsonFileContent(self.filePath.getJsonCardsPath())
 
+        # uncomment if need to recover a broken insert process +add recoveryInserBlock()
+        # execute = False
         for line in jsonContent:
-            self.insertCardsQuery(line)
+            result = self.existsIdDeck(line['idDeck'])
+            if len(result) > 0:
+                self.insertCardsQuery(line)
         print("    -- Cards added")
+
+    def recoveryInsertBlock(self, idDeck, number):
+        if int(idDeck) == int(number):
+            return True
+        
+        return False
 
     # tournament insert query
     def insertTournamentQuery(self, line, idLeague):
@@ -88,6 +98,12 @@ class JsonToMysql:
         
         return nameSplitted[1]
     
+    # get list of excluded decks
+    def existsIdDeck(self, idDeck):
+        query = 'SELECT id FROM player WHERE idDeck = %s' %idDeck 
+
+        return self.db.selectQuery(self.db.connection(), query)
+
     # check if Tournament exists
     def existsTournamentOnDB(self, idTournament):
         query = 'SELECT id as id FROM tournament WHERE idTournament = %s;' %(idTournament)

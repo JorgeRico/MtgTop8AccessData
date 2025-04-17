@@ -62,12 +62,24 @@ class ExcelToJson:
         df       = pd.read_excel(self.filePath.getExcelPlayersPath())
         itemList = self.getItemListFromExcel(df)
         values   = []
+
         # allways first row is 1st player
-        position = 1
+        position             = 1
+        previousIdTournament = 0
+        newTournament        = False
 
         for item in itemList:
-            previous = self.getPreviousPosition(item[1], position)
-            position = self.getPosition(item[1], previous)
+            if int(previousIdTournament) != int(item[2]) and previousIdTournament != 0:
+                newTournament = True
+            else:
+                newTournament = False
+
+            exceptionPosition = self.setTournamentPositionException(item[2], position, newTournament)
+            if exceptionPosition is not None:
+                position = exceptionPosition
+            else:
+                previous = self.getPreviousPosition(item[1], position)
+                position = self.getPosition(item[1], previous)
 
             value = {
                 "name"         : item[0],
@@ -77,7 +89,20 @@ class ExcelToJson:
             }
 
             values.append(value)
+
+            previousIdTournament = item[2]
         self.writeJsonFile(values, self.filePath.getJsonPlayersPath())
+
+    # 2023 tournaments position exceptions
+    def setTournamentPositionException(self, idTournament, position, newTournament):
+        exceptions = [ 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209 ]
+        if int(idTournament) in exceptions:
+            if newTournament == True:
+                return 1
+            else:
+                return int(position) + 1
+            
+        return None
 
     # get tournament insert data
     def getTournamentInserts(self):
@@ -109,9 +134,15 @@ class ExcelToJson:
 
     # conversion position number
     def getPosition(self, position, previousValue):
-        if int(position) == 1 or int(position) == 2:
-            return int(position)
+        if int(position) == 0:
+            return int(position)+1
         
+        if int(position) == 1:
+            return int(position)
+    
+        if int(position) == 2:
+            return int(previousValue)+1
+            
         if int(position) == 3:
             return int(position)-1
        
