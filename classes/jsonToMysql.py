@@ -1,11 +1,11 @@
 from classes.filePaths import FilePaths
 from classes.db import Db
 import json
-
+import time
 class JsonToMysql:
     def __init__(self):
-        self.filePath   = FilePaths()
-        self.db         = Db()
+        self.filePath = FilePaths()
+        self.db       = Db()
 
     # insert League data + insert Tournament data
     def insertLeagueAndTournament(self):
@@ -20,7 +20,7 @@ class JsonToMysql:
 
                 # league add or update data
                 self.insertLeagueQuery(idLeague, year, leagueName)
-                print("  -- League added or updated: %s" %leagueName)
+                # print("    -- League added or updated: %s" %leagueName)
 
                 # tournament add data
                 self.insertTournamentQuery(line, idLeague)
@@ -30,42 +30,95 @@ class JsonToMysql:
     def insertTournamentPlayers(self):
         jsonContent = self.getJsonFileContent(self.filePath.getJsonPlayersPath())
 
+        tournamentPlayers  = []
+        previousTournament = None
         for line in jsonContent:
+            # start loop
+            if previousTournament is None:
+                previousTournament = line['idTournament']
+
+            if previousTournament != line['idTournament']:
+                if len(tournamentPlayers) > 0: 
+                    players = self.saveTournamentPlayersList(tournamentPlayers)
+                    self.insertMultipleTournamentPlayerQuery(players)
+                    print("    -- Top Players Added Tournament: %s" %previousTournament)
+
+                # reset previousTournament
+                previousTournament = line['idTournament']
+                tournamentPlayers  = []
+
             # excludes 2024 and 2025 tournaments
             if len(self.existsTournamentOnDB(line['idTournament'])) != 0:
-                self.insertTournamentPlayerQuery(line)
-                print("    -- Top Player added: %s - %s" %(line['position'], line['name']))
+                tournamentPlayers.append(line)
 
     # insert tournament decks
     def insertTournamentDecks(self):
         jsonContent = self.getJsonFileContent(self.filePath.getJsonDecksPath())
 
+        tournamentDecks  = []
+        previousTournament = None
         for line in jsonContent:
+            # start loop
+            if previousTournament is None:
+                previousTournament = line['idTournament']
+
+            if previousTournament != line['idTournament']:
+                if len(tournamentDecks) > 0:
+                    decks = self.saveDecksList(tournamentDecks)
+                    self.insertMultipleDeckQuery(decks)
+                    print("    -- Top Player Decks Added Tournament: %s" %previousTournament)
+
+                # reset previousTournament
+                previousTournament = line['idTournament']
+                tournamentDecks  = []
+
             result = self.getPlayerIdDeckOnDB(line['player'], line['idTournament'])
             # excludes 2024 and 2025 tournaments
             if len(result) != 0:
-                self.insertDeckQuery(result, line)
-                print("    -- Top Player Deck added: %s" %line['name'])
+                item = {
+                    'id'       : result[0][0],
+                    'name'     : line['name'],
+                    'idPlayer' : result[0][1]
+                }
+                tournamentDecks.append(item)
 
     # insert deck cards
     def insertCardsDeck(self):
-        print("    -- Cards adding . . . .")
         jsonContent = self.getJsonFileContent(self.filePath.getJsonCardsPath())
 
-        # uncomment if need to recover a broken insert process +add recoveryInserBlock()
-        # execute = False
+        deckListCards = []
+        previousDeck = None
+
+        # bypass to recover broken connection
+        # recoverInsert = False
+        recoverInsert = True
+        # idDeck  8514
         for line in jsonContent:
-            result = self.existsIdDeck(line['idDeck'])
-            if len(result) > 0:
-                self.insertCardsQuery(line)
-        print("    -- Cards added")
+            # bypass to recover broken connection
+            # if int(line['idDeck']) == 8514:
+            #     recoverInsert = True
 
-    def recoveryInsertBlock(self, idDeck, number):
-        if int(idDeck) == int(number):
-            return True
-        
-        return False
+            if recoverInsert == True:
+                # start loop
+                if previousDeck is None:
+                    previousDeck = line['idDeck']
 
+                # change idDeck
+                if previousDeck != line['idDeck']:
+                    if len(deckListCards) > 0:
+                        cards = self.saveDeckCardsList(deckListCards)
+                        self.insertMultipleCardsQuery(cards)
+                        print("    -- Cards added - idDeck: %s" %previousDeck)
+                        time.sleep(2)
+                    
+                    # reset previousDeck
+                    previousDeck = line['idDeck']
+                    deckListCards = []
+
+                result = self.existsIdDeck(line['idDeck'])
+                if len(result) > 0:
+                    deckListCards.append(line)
+    
     # tournament insert query
     def insertTournamentQuery(self, line, idLeague):
         query = 'INSERT INTO tournament (id, idTournament, name, date, idLeague, players) VALUES ( "%s", "%s", "%s", "%s", "%s", "%s" );' %(line['idTournament'], line['idTournament'], line['name'], line['date'], idLeague, line['players'])
@@ -76,21 +129,45 @@ class JsonToMysql:
         query = 'INSERT INTO league (id, name, year, active) VALUES ( "%s", "%s", "%s", 1 ) ' %(idLeague, leagueName, year)
         query += 'ON DUPLICATE KEY UPDATE id="%s", name="%s", year="%s", active=1;' %(idLeague, leagueName, year)
         self.db.executeInsertQuery(self.db.connection(), query)
-    
-    # tournament top8 - top16 players insert query
-    def insertTournamentPlayerQuery(self, line):
-        query = 'INSERT INTO `player` ( `name`, `position`, `idTournament`, `idDeck` ) VALUES ( "%s", "%s", "%s", "%s" );' %(line['name'], line['position'], line['idTournament'], line['idDeck'])
-        self.db.executeInsertQuery(self.db.connection(), query)
-    
-    # tournament deck insert query
-    def insertDeckQuery(self, result, line):
-        query = 'INSERT INTO `deck` (`id`, `name`, `idPlayer`) VALUES ( "%s", "%s", "%s");' %(result[0][0], line['name'], result[0][1])
+
+    # tournament top8 - top16 multiple players insert query
+    def insertMultipleTournamentPlayerQuery(self, line):
+        query = 'INSERT INTO `player` ( `name`, `position`, `idTournament`, `idDeck` ) VALUES %s' %line
         self.db.executeInsertQuery(self.db.connection(), query)
 
-    # deck cards insert query
-    def insertCardsQuery(self, line):
-        query = 'INSERT INTO `cards` (`name`, `num`, `idDeck`, `board`, `cardType`) VALUES ( "%s", "%s", "%s", "%s", "%s" );' %(line['name'], line['num'], line['idDeck'], line['board'], line['cardType'])
+    # top8 players query values
+    def saveTournamentPlayersList(self, tournamentPlayers):
+        query = ''
+        for player in tournamentPlayers:
+            query += ' ( "%s", "%s", "%s", "%s" ),' %(player['name'], player['position'], player['idTournament'], player['idDeck'])
+
+        return self.replaceLastQueryChar(query)
+
+    # tournament multiple deck insert query
+    def insertMultipleDeckQuery(self, line):
+        query = 'INSERT INTO `deck` (`id`, `name`, `idPlayer`) VALUES %s' %line
         self.db.executeInsertQuery(self.db.connection(), query)
+
+    # tournament deck values query
+    def saveDecksList(self, decks):
+        query = ''
+        for deck in decks:
+            query += ' ( "%s", "%s", "%s" ),' %(deck['id'], deck['name'], deck['idPlayer'])
+
+        return self.replaceLastQueryChar(query)
+
+    # deck cards insert query
+    def insertMultipleCardsQuery(self, line):
+        query = 'INSERT INTO `cards` (`name`, `num`, `idDeck`, `board`, `cardType`) VALUES %s' %line
+        self.db.executeInsertQuery(self.db.connection(), query)
+
+    # multiple card query values
+    def saveDeckCardsList(self, deckListCards):
+        query = ''
+        for card in deckListCards:
+            query += ' ( "%s", "%s", "%s", "%s", "%s" ),' %(card['name'], card['num'], card['idDeck'], card['board'], card['cardType'])
+
+        return self.replaceLastQueryChar(query)
 
     # get year from tournament name string
     def getYear(self, name):
@@ -150,5 +227,9 @@ class JsonToMysql:
         else:
             return False
         
+    # change last "," by ";"
+    def replaceLastQueryChar(self, query):
+        query = query[:-1] + ';'
 
+        return query
            
