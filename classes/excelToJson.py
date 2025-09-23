@@ -18,6 +18,10 @@ class ExcelToJson:
 
             # main cards
             if int(item[2]) > 0:
+                # exception
+                if int(item[1]) == 8564:
+                    item[1] = 8565
+
                 value = {
                     "name"     : item[0],
                     "num"      : item[2],

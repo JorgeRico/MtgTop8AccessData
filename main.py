@@ -8,5 +8,5 @@ if __name__ == "__main__":
     # can be commented if exists excel and json data files
     menu.excelToJson()
     # insert data on mysql DB
-    menu.jsonToMysqlDatabase()
+    menu.jsonToDatabase()
 

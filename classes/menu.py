@@ -1,6 +1,7 @@
 from classes.msAccessToExcel import MSAccessToExcel
 from classes.excelToJson import ExcelToJson
-from classes.jsonToMysql import JsonToMysql
+# from classes.mysql.jsonToMysql import JsonToMysql
+from classes.supabase.jsonToSupabase import JsonToSupabase
 from classes.filePaths import FilePaths
 
 class Menu:
@@ -29,11 +30,13 @@ class Menu:
         print(' -- Generate Insert Files Finished!!!\n')
 
     # 3rd step - Add json info to database
-    def jsonToMysqlDatabase(self):
-        data = JsonToMysql()
+    def jsonToDatabase(self):
+        # data = JsonToMysql()
+        data = JsonToSupabase()
         print(' -- Insert values on DB Start!!!')
-        data.insertLeagueAndTournament()
-        data.insertTournamentPlayers()
+        data.insertLeagues()
+        data.insertTournaments()
         data.insertTournamentDecks()
         data.insertCardsDeck()
+        data.insertTournamentPlayers()
         print(' -- Insert values on DB Finished!!!')
