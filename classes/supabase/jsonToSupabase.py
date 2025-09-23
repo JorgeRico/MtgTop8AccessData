@@ -112,6 +112,8 @@ class JsonToSupabase:
 
         deckListCards = []
         previousDeck = None
+          
+        print("\n      !! Adding cards:")
 
         # bypass to recover broken connection
         # recoverInsert = False
@@ -122,7 +124,7 @@ class JsonToSupabase:
             # if int(line['idDeck']) == 8761:
             #     recoverInsert = True
 
-            if int(line['idDeck']) == 9034:
+            if int(line['idDeck']) >= 9034:
                 break
 
             if recoverInsert == True:
@@ -134,7 +136,7 @@ class JsonToSupabase:
                 if previousDeck != line['idDeck']:
                     if len(deckListCards) > 0:
                         self.queries.insertMultipleCardsQuery(deckListCards, previousDeck)
-                        time.sleep(1)
+                        time.sleep(2)
                     
                     # reset previousDeck
                     previousDeck = line['idDeck']

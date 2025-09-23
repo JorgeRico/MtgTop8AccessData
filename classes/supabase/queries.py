@@ -44,6 +44,7 @@ class Queries:
     # tournament top8 - top16 multiple players insert query
     def insertMultipleTournamentPlayerQuery(self, players, previousTournament):
         for player in players:
+            playersList = []
             exist = self.existsTournamentPlayer(player)
 
             if len(exist) == 0:
@@ -53,9 +54,10 @@ class Queries:
                     "idTournament" : player['idTournament'],
                     "idDeck"       : player['idDeck']
                 }
+                playersList.append(item)
 
-                self.db.insert('players', item)
-            print("    -- Top Players Added Tournament: %s" %previousTournament)
+        self.db.insert('players', playersList)
+        print("    -- Top Players Added Tournament: %s" %previousTournament)
 
     # get list of excluded decks
     def existsTournamentPlayer(self, player):
@@ -71,9 +73,9 @@ class Queries:
 
         return result.data
 
-
     # tournament multiple deck insert query
     def insertMultipleDeckQuery(self, decks):
+        decksArray = []
         for deck in decks:
             if len(self.existsTournamentPlayerDeck(deck)) == 1:
                 print("        !! Deck is on DB: %s - %s" %(deck['id'], deck['name']))
@@ -83,9 +85,9 @@ class Queries:
                     "name"        : deck['name'], 
                     "cardsLoaded" : False
                 }
-
-                self.db.insert('decks', item)
-                print("        !! Deck insert: %s - %s" %(deck['id'], deck['name']))
+                decksArray.append(item)
+                print("        !! Deck to insert: %s - %s" %(deck['id'], deck['name']))
+        self.db.insert('decks', decksArray)
 
     # get list of excluded decks
     def deckIsLoaded(self, idDeck):
@@ -96,11 +98,19 @@ class Queries:
     
     # deck cards insert query
     def insertMultipleCardsQuery(self, cards, previousDeck):
+        cardsList = []
         result = self.deckIsLoaded(cards[0]['idDeck'])
 
         # TODO: 8564, 8762 is an exception - need to be fixed manually
         if cards[0]['idDeck'] != 8564 and cards[0]['idDeck'] != 8762:
-            if result[0].get('cardsLoaded') == False:
+            if len(result) == 1 and result[0].get('cardsLoaded') == False:
+                add = True
+            elif len(result) == 0:
+                add = True
+            else:
+                add = False
+
+            if add == True:
                 for card in cards:
                     item = {
                         "name"     : card['name'],
@@ -109,8 +119,9 @@ class Queries:
                         "board"    : card['board'], 
                         "cardType" : card['cardType']
                     }
+                    cardsList.append(item)
 
-                    self.db.insert('cards', item)
+                self.db.insert('cards', cardsList)
                 self.db.update('decks', {'cardsLoaded' : True}, 'id', card['idDeck'])
                 print("        -- Cards added - idDeck: %s" %previousDeck)
             else:    

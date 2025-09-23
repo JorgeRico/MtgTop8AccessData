@@ -10,8 +10,29 @@ class JsonToMysql:
         self.queries  = Queries()
 
     # insert League data + insert Tournament data
-    def insertLeagueAndTournament(self):
+    # def insertLeagueAndTournament(self):
+    #     jsonContent = self.getJsonFileContent(self.filePath.getJsonTournamentPath())
+        
+    #     for line in jsonContent:
+    #         if self.isLeagueIdExcluded(line['idLeague']) != True:
+    #             # extra info
+    #             leagueName = self.exceptionLeagueNames(line['idLeague'], line['name'])
+    #             idLeague   = self.exceptionLeagueId(line['idLeague'], leagueName)
+    #             year       = self.getYear(leagueName)
+
+    #             # league add or update data
+    #             self.queries.insertLeagueQuery(idLeague, year, leagueName)
+    #             print("    -- League added or updated: %s" %leagueName)
+
+    #             # tournament add data
+    #             self.queries.insertTournamentQuery(line, idLeague)
+    #             print("    -- Tournament added: %s" %line['name'])
+
+    # insert League data + insert Tournament data
+    def insertLeagues(self):
         jsonContent = self.getJsonFileContent(self.filePath.getJsonTournamentPath())
+
+        leagues = []
         
         for line in jsonContent:
             if self.isLeagueIdExcluded(line['idLeague']) != True:
@@ -20,13 +41,40 @@ class JsonToMysql:
                 idLeague   = self.exceptionLeagueId(line['idLeague'], leagueName)
                 year       = self.getYear(leagueName)
 
-                # league add or update data
-                self.queries.insertLeagueQuery(idLeague, year, leagueName)
-                # print("    -- League added or updated: %s" %leagueName)
+                item = {
+                    "leagueName" : leagueName,
+                    "idLeague"   : idLeague,
+                    "year"       : year
+                }
+
+                if item not in leagues:
+                    leagues.append(item)
+
+        for league in leagues:
+            result = self.queries.existsLeague(league['idLeague'])
+            if len(result) == 0:
+                self.queries.insertLeagueQuery(league['idLeague'], league['year'], league['leagueName'])
+                print("    -- League added or updated: %s" %league['leagueName'])
+            else:
+                print("    -- League is on DB: %s" %league['leagueName'])
+
+    # insert League data + insert Tournament data
+    def insertTournaments(self):
+        jsonContent = self.getJsonFileContent(self.filePath.getJsonTournamentPath())
+        
+        for line in jsonContent:
+            if self.isLeagueIdExcluded(line['idLeague']) != True:
+                # extra info
+                leagueName = self.exceptionLeagueNames(line['idLeague'], line['name'])
+                idLeague   = self.exceptionLeagueId(line['idLeague'], leagueName)
 
                 # tournament add data
-                self.queries.insertTournamentQuery(line, idLeague)
-                print("    -- Tournament added: %s" %line['name'])
+                res = self.queries.existsTournament(line['id'], line['idTournament'], idLeague)
+                if len(res) == 0:
+                    self.queries.insertTournamentQuery(line, idLeague)
+                    print("      -- Tournament added: %s" %line['name'])
+                else:
+                    print("      -- Tournament is on DB: %s" %line['name'])
 
     # insert tournament players
     def insertTournamentPlayers(self):
@@ -74,15 +122,11 @@ class JsonToMysql:
                 previousTournament = line['idTournament']
                 tournamentDecks  = []
 
-            result = self.queries.getPlayerIdDeckOnDB(line['player'], line['idTournament'])
-            # excludes 2024 and 2025 tournaments
-            if len(result) != 0:
-                item = {
-                    'id'       : result[0][0],
-                    'name'     : line['name'],
-                    'idPlayer' : result[0][1]
-                }
-                tournamentDecks.append(item)
+            item = {
+                'id'   : line['id'],
+                'name' : line['name']
+            }
+            tournamentDecks.append(item)
 
     # insert deck cards
     def insertCardsDeck(self):
@@ -110,6 +154,7 @@ class JsonToMysql:
                     if len(deckListCards) > 0:
                         cards = self.queries.saveDeckCardsList(deckListCards)
                         self.queries.insertMultipleCardsQuery(cards)
+                        self.queries.updateDeckCardsLoaded(previousDeck)
                         print("    -- Cards added - idDeck: %s" %previousDeck)
                         time.sleep(2)
                     
